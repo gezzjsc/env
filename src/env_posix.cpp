@@ -33,9 +33,9 @@ bool EnvPosix::GetChildren(const std::string& dir,
         (strcmp(entry->d_name, "..") == 0)) {
       continue;
     }
-    if (entry->d_type == DT_REG) {
+    if (entry->d_type == DT_REG && sub_reg_files) {
       sub_reg_files->push_back(entry->d_name);
-    } else if (entry->d_type == DT_DIR) {
+    } else if (entry->d_type == DT_DIR && sub_dirs) {
       sub_dirs->push_back(entry->d_name);
     }
   }
@@ -68,4 +68,27 @@ bool EnvPosix::GetFileSize(const std::string& file_name, uint64_t* size) {
 
 bool EnvPosix::RenameFile(const std::string& src, const std::string& target) {
   return rename(src.c_str(), target.c_str()) == 0;
+}
+
+bool EnvPosix::DirName(const std::string& file_name,
+                       std::string *dir_name) {
+  std::string::size_type separator_pos = file_name.rfind('/');
+  if (separator_pos == std::string::npos) {
+    *dir_name = std::string(".");
+    return true;
+  }
+
+  *dir_name = file_name.substr(0, separator_pos);
+  return true;
+}
+
+bool EnvPosix::BaseName(const std::string &file_name,
+                        std::string *base_name) {
+  std::string::size_type separator_pos = file_name.rfind('/');
+  if (separator_pos == std::string::npos) {
+    return false;
+  }
+
+  *base_name = std::string(file_name.data() + separator_pos + 1);
+  return true;
 }
